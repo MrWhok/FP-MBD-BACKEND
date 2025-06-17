@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -35,17 +36,15 @@ func NewDatabase(config Config) *gorm.DB {
 		},
 	)
 
-	dsn := "host=" + host +
-		" user=" + username +
-		" password=" + password +
-		" dbname=" + dbName +
-		" port=" + port +
-		" sslmode=" + sslMode +
-		" TimeZone=Asia/Jakarta"
+	dsn := fmt.Sprintf(
+		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+		username, password, host, port, dbName, sslMode,
+	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: loggerDb,
 	})
+
 	exception.PanicLogging(err)
 
 	sqlDB, err := db.DB()
