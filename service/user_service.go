@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/entity"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/model"
+	"github.com/MrWhok/FP-MBD-BACKEND/entity"
+	"github.com/MrWhok/FP-MBD-BACKEND/model"
 )
 
 type UserService interface {

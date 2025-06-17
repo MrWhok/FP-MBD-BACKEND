@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/client/restclient"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/configuration"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/controller"
-	_ "github.com/RizkiMufrizal/gofiber-clean-architecture/docs"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/exception"
-	repository "github.com/RizkiMufrizal/gofiber-clean-architecture/repository/impl"
-	service "github.com/RizkiMufrizal/gofiber-clean-architecture/service/impl"
+	"github.com/MrWhok/FP-MBD-BACKEND/client/restclient"
+	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
+	"github.com/MrWhok/FP-MBD-BACKEND/controller"
+	_ "github.com/MrWhok/FP-MBD-BACKEND/docs"
+	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+	repository "github.com/MrWhok/FP-MBD-BACKEND/repository/impl"
+	service "github.com/MrWhok/FP-MBD-BACKEND/service/impl"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"

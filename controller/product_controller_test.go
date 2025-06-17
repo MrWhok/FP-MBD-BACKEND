@@ -3,7 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/model"
+	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http/httptest"

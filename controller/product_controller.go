@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/configuration"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/exception"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/middleware"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/model"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/service"
+	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
+	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+	"github.com/MrWhok/FP-MBD-BACKEND/middleware"
+	"github.com/MrWhok/FP-MBD-BACKEND/model"
+	"github.com/MrWhok/FP-MBD-BACKEND/service"
 	"github.com/gofiber/fiber/v2"
 )
 

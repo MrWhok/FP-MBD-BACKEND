@@ -3,8 +3,8 @@ package impl
 import (
 	"context"
 	"errors"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/entity"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/repository"
+	"github.com/MrWhok/FP-MBD-BACKEND/entity"
+	"github.com/MrWhok/FP-MBD-BACKEND/repository"
 	"gorm.io/gorm"
 )
 

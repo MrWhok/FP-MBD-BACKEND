@@ -1,26 +1,28 @@
 package configuration
 
 import (
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/exception"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func NewDatabase(config Config) *gorm.DB {
-	username := config.Get("DATASOURCE_USERNAME")
-	password := config.Get("DATASOURCE_PASSWORD")
-	host := config.Get("DATASOURCE_HOST")
-	port := config.Get("DATASOURCE_PORT")
-	dbName := config.Get("DATASOURCE_DB_NAME")
-	maxPoolOpen, err := strconv.Atoi(config.Get("DATASOURCE_POOL_MAX_CONN"))
-	maxPoolIdle, err := strconv.Atoi(config.Get("DATASOURCE_POOL_IDLE_CONN"))
-	maxPollLifeTime, err := strconv.Atoi(config.Get("DATASOURCE_POOL_LIFE_TIME"))
+	username := config.Get("SUPABASE_USERNAME")
+	password := config.Get("SUPABASE_PASSWORD")
+	host := config.Get("SUPABASE_HOST")
+	port := config.Get("SUPABASE_PORT")
+	dbName := config.Get("SUPABASE_DB_NAME")
+	sslMode := config.Get("SUPABASE_SSLMODE")
+	maxPoolOpen, err := strconv.Atoi(config.Get("SUPABASE_POOL_MAX_CONN"))
+	maxPoolIdle, err := strconv.Atoi(config.Get("SUPABASE_POOL_IDLE_CONN"))
+	maxPollLifeTime, err := strconv.Atoi(config.Get("SUPABASE_POOL_LIFE_TIME"))
 	exception.PanicLogging(err)
 
 	loggerDb := logger.New(
@@ -33,7 +35,15 @@ func NewDatabase(config Config) *gorm.DB {
 		},
 	)
 
-	db, err := gorm.Open(mysql.Open(username+":"+password+"@tcp("+host+":"+port+")/"+dbName+"?parseTime=true"), &gorm.Config{
+	dsn := "host=" + host +
+		" user=" + username +
+		" password=" + password +
+		" dbname=" + dbName +
+		" port=" + port +
+		" sslmode=" + sslMode +
+		" TimeZone=Asia/Jakarta"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: loggerDb,
 	})
 	exception.PanicLogging(err)
@@ -45,12 +55,5 @@ func NewDatabase(config Config) *gorm.DB {
 	sqlDB.SetMaxIdleConns(maxPoolIdle)
 	sqlDB.SetConnMaxLifetime(time.Duration(rand.Int31n(int32(maxPollLifeTime))) * time.Millisecond)
 
-	//autoMigrate
-	//err = db.AutoMigrate(&entity.Product{})
-	//err = db.AutoMigrate(&entity.Transaction{})
-	//err = db.AutoMigrate(&entity.TransactionDetail{})
-	//err = db.AutoMigrate(&entity.User{})
-	//err = db.AutoMigrate(&entity.UserRole{})
-	//exception.PanicLogging(err)
 	return db
 }

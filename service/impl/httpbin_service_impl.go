@@ -2,10 +2,10 @@ package impl
 
 import (
 	"context"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/client"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/common"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/model"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/service"
+	"github.com/MrWhok/FP-MBD-BACKEND/client"
+	"github.com/MrWhok/FP-MBD-BACKEND/common"
+	"github.com/MrWhok/FP-MBD-BACKEND/model"
+	"github.com/MrWhok/FP-MBD-BACKEND/service"
 )
 
 func NewHttpBinServiceImpl(httpBinClient *client.HttpBinClient) service.HttpBinService {

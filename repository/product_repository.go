@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/RizkiMufrizal/gofiber-clean-architecture/entity"
+	"github.com/MrWhok/FP-MBD-BACKEND/entity"
 )
 
 type ProductRepository interface {
