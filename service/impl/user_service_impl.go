@@ -2,8 +2,8 @@ package impl
 
 import (
 	"context"
-	"github.com/MrWhok/FP-MBD-BACKEND/entity"
-	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+	"errors"
+
 	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/MrWhok/FP-MBD-BACKEND/repository"
 	"github.com/MrWhok/FP-MBD-BACKEND/service"
@@ -18,18 +18,25 @@ type userServiceImpl struct {
 	repository.UserRepository
 }
 
-func (userService *userServiceImpl) Authentication(ctx context.Context, model model.UserModel) entity.User {
-	userResult, err := userService.UserRepository.Authentication(ctx, model.Username)
+func (s *userServiceImpl) Register(ctx context.Context, req model.UserRegisterModel) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		panic(exception.UnauthorizedError{
-			Message: err.Error(),
-		})
+		return err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(model.Password))
+
+	return s.UserRepository.Register(ctx, req.Nama, req.Email, req.NoTelp, string(hashedPassword))
+}
+
+func (s *userServiceImpl) Login(ctx context.Context, req model.UserLoginModel) (int, error) {
+	hashedPassword, customerID, err := s.UserRepository.Login(ctx, req.Email)
 	if err != nil {
-		panic(exception.UnauthorizedError{
-			Message: "incorrect username and password",
-		})
+		return 0, errors.New("email not found")
 	}
-	return userResult
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(req.Password))
+	if err != nil {
+		return 0, errors.New("password incorrect")
+	}
+
+	return customerID, nil
 }

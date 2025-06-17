@@ -2,11 +2,8 @@ package impl
 
 import (
 	"context"
-	"errors"
-	"github.com/MrWhok/FP-MBD-BACKEND/entity"
-	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+
 	"github.com/MrWhok/FP-MBD-BACKEND/repository"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -18,39 +15,21 @@ type userRepositoryImpl struct {
 	*gorm.DB
 }
 
-func (userRepository *userRepositoryImpl) Create(username string, password string, roles []string) {
-	var userRoles []entity.UserRole
-	for _, role := range roles {
-		userRoles = append(userRoles, entity.UserRole{
-			Id:       uuid.New(),
-			Username: username,
-			Role:     role,
-		})
-	}
-	user := entity.User{
-		Username:  username,
-		Password:  password,
-		IsActive:  true,
-		UserRoles: userRoles,
-	}
-	err := userRepository.DB.Create(&user).Error
-	exception.PanicLogging(err)
+func (r *userRepositoryImpl) Register(ctx context.Context, nama, email, noTelp, password string) error {
+	return r.DB.WithContext(ctx).Exec(`CALL register_customer(?, ?, ?, ?)`, nama, email, noTelp, password).Error
 }
 
-func (userRepository *userRepositoryImpl) DeleteAll() {
-	err := userRepository.DB.Where("1=1").Delete(&entity.User{}).Error
-	exception.PanicLogging(err)
-}
+func (r *userRepositoryImpl) Login(ctx context.Context, email string) (string, int, error) {
+	var customerID int
+	var hashedPassword string
 
-func (userRepository *userRepositoryImpl) Authentication(ctx context.Context, username string) (entity.User, error) {
-	var userResult entity.User
-	result := userRepository.DB.WithContext(ctx).
-		Joins("inner join tb_user_role on tb_user_role.username = tb_user.username").
-		Preload("UserRoles").
-		Where("tb_user.username = ? and tb_user.is_active = ?", username, true).
-		Find(&userResult)
-	if result.RowsAffected == 0 {
-		return entity.User{}, errors.New("user not found")
+	row := r.DB.WithContext(ctx).
+		Raw(`SELECT * FROM login_customer(?)`, email).Row()
+
+	err := row.Scan(&customerID, &hashedPassword)
+	if err != nil {
+		return "", 0, err
 	}
-	return userResult, nil
+
+	return hashedPassword, customerID, nil
 }

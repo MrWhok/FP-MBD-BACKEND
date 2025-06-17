@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"github.com/MrWhok/FP-MBD-BACKEND/common"
 	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
-	"github.com/MrWhok/FP-MBD-BACKEND/exception"
 	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/MrWhok/FP-MBD-BACKEND/service"
 	"github.com/gofiber/fiber/v2"
@@ -19,39 +17,55 @@ type UserController struct {
 }
 
 func (controller UserController) Route(app *fiber.App) {
-	app.Post("/v1/api/authentication", controller.Authentication)
+	app.Post("/v1/api/register", controller.Register)
+	app.Post("/v1/api/login", controller.Login)
 }
 
-// Authentication func Authenticate user.
-// @Description authenticate user.
-// @Summary authenticate user
-// @Tags Authenticate user
-// @Accept json
-// @Produce json
-// @Param request body model.UserModel true "Request Body"
-// @Success 200 {object} model.GeneralResponse
-// @Router /v1/api/authentication [post]
-func (controller UserController) Authentication(c *fiber.Ctx) error {
-	var request model.UserModel
-	err := c.BodyParser(&request)
-	exception.PanicLogging(err)
-
-	result := controller.UserService.Authentication(c.Context(), request)
-	var userRoles []map[string]interface{}
-	for _, userRole := range result.UserRoles {
-		userRoles = append(userRoles, map[string]interface{}{
-			"role": userRole.Role,
+func (controller UserController) Register(c *fiber.Ctx) error {
+	var request model.UserRegisterModel
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: "Invalid request format",
 		})
 	}
-	tokenJwtResult := common.GenerateToken(result.Username, userRoles, controller.Config)
-	resultWithToken := map[string]interface{}{
-		"token":    tokenJwtResult,
-		"username": result.Username,
-		"role":     userRoles,
+
+	err := controller.UserService.Register(c.Context(), request)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: err.Error(),
+		})
 	}
+
+	return c.Status(fiber.StatusCreated).JSON(model.GeneralResponse{
+		Code:    201,
+		Message: "User registered successfully",
+	})
+}
+
+func (controller UserController) Login(c *fiber.Ctx) error {
+	var request model.UserLoginModel
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: "Invalid request format",
+		})
+	}
+
+	customerID, err := controller.UserService.Login(c.Context(), request)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(model.GeneralResponse{
+			Code:    401,
+			Message: "Email or password incorrect",
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    200,
-		Message: "Success",
-		Data:    resultWithToken,
+		Message: "Login successful",
+		Data: map[string]interface{}{
+			"customer_id": customerID,
+		},
 	})
 }

@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/MrWhok/FP-MBD-BACKEND/entity"
+
 	"github.com/MrWhok/FP-MBD-BACKEND/model"
 )
 
 type UserService interface {
-	Authentication(ctx context.Context, model model.UserModel) entity.User
+	Register(ctx context.Context, request model.UserRegisterModel) error
+	Login(ctx context.Context, request model.UserLoginModel) (int, error)
 }
