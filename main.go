@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"github.com/MrWhok/FP-MBD-BACKEND/client/restclient"
 	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
 	"github.com/MrWhok/FP-MBD-BACKEND/controller"
@@ -9,6 +12,7 @@ import (
 	"github.com/MrWhok/FP-MBD-BACKEND/repository/impl"
 	repository "github.com/MrWhok/FP-MBD-BACKEND/repository/impl"
 	service "github.com/MrWhok/FP-MBD-BACKEND/service/impl"
+	"github.com/MrWhok/FP-MBD-BACKEND/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -61,6 +65,32 @@ func main() {
 	userController := controller.NewUserController(&userService, config)
 	httpBinController := controller.NewHttpBinController(&httpBinService)
 	reservationController := controller.NewReservationController(reservationService, config)
+
+	notificationRepo := impl.NewNotificationRepositoryImpl(database)
+
+	// Start background email sender
+	go func() {
+		for {
+			notifications, err := notificationRepo.GetUnsentNotifications()
+			if err != nil {
+				log.Println("❌ Error fetching unsent notifications:", err)
+			}
+
+			for _, notif := range notifications {
+				err := utils.SendEmail(notif.Email, "Reservasi Anda", notif.Message)
+				if err != nil {
+					log.Println("❌ Failed to send email to", notif.Email, ":", err)
+					continue
+				}
+				err = notificationRepo.MarkAsSent(notif.ID)
+				if err != nil {
+					log.Println("❌ Failed to mark notification as sent:", err)
+				}
+			}
+
+			time.Sleep(30 * time.Second) // check setiap 30 detik
+		}
+	}()
 
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())

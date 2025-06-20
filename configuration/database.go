@@ -26,6 +26,7 @@ func NewDatabase(config Config) *gorm.DB {
 	maxPollLifeTime, err := strconv.Atoi(config.Get("SUPABASE_POOL_LIFE_TIME"))
 	exception.PanicLogging(err)
 
+	// Logger GORM
 	loggerDb := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -36,20 +37,25 @@ func NewDatabase(config Config) *gorm.DB {
 		},
 	)
 
+	// DSN string
 	dsn := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
 		username, password, host, port, dbName, sslMode,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: loggerDb,
+	// ✅ Gunakan PreferSimpleProtocol & matikan prepared statement caching
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true, // ✅ Hindari named prepared statement (stmtcache)
+	}), &gorm.Config{
+		Logger:      loggerDb,
+		PrepareStmt: false, // ✅ Hindari caching statement di sisi GORM
 	})
-
 	exception.PanicLogging(err)
 
+	// Konfigurasi koneksi pool
 	sqlDB, err := db.DB()
 	exception.PanicLogging(err)
-
 	sqlDB.SetMaxOpenConns(maxPoolOpen)
 	sqlDB.SetMaxIdleConns(maxPoolIdle)
 	sqlDB.SetConnMaxLifetime(time.Duration(rand.Int31n(int32(maxPollLifeTime))) * time.Millisecond)
