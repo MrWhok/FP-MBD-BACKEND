@@ -6,6 +6,7 @@ import (
 	"github.com/MrWhok/FP-MBD-BACKEND/controller"
 	_ "github.com/MrWhok/FP-MBD-BACKEND/docs"
 	"github.com/MrWhok/FP-MBD-BACKEND/exception"
+	"github.com/MrWhok/FP-MBD-BACKEND/repository/impl"
 	repository "github.com/MrWhok/FP-MBD-BACKEND/repository/impl"
 	service "github.com/MrWhok/FP-MBD-BACKEND/service/impl"
 	"github.com/gofiber/fiber/v2"
@@ -40,6 +41,7 @@ func main() {
 	transactionRepository := repository.NewTransactionRepositoryImpl(database)
 	transactionDetailRepository := repository.NewTransactionDetailRepositoryImpl(database)
 	userRepository := repository.NewUserRepositoryImpl(database)
+	reservationRepo := impl.NewReservationRepositoryImpl(database)
 
 	//rest client
 	httpBinRestClient := restclient.NewHttpBinRestClient()
@@ -50,6 +52,7 @@ func main() {
 	transactionDetailService := service.NewTransactionDetailServiceImpl(&transactionDetailRepository)
 	userService := service.NewUserServiceImpl(&userRepository)
 	httpBinService := service.NewHttpBinServiceImpl(&httpBinRestClient)
+	reservationService := service.NewReservationServiceImpl(reservationRepo)
 
 	//controller
 	productController := controller.NewProductController(&productService, config)
@@ -57,6 +60,7 @@ func main() {
 	transactionDetailController := controller.NewTransactionDetailController(&transactionDetailService, config)
 	userController := controller.NewUserController(&userService, config)
 	httpBinController := controller.NewHttpBinController(&httpBinService)
+	reservationController := controller.NewReservationController(reservationService)
 
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
@@ -69,6 +73,7 @@ func main() {
 	transactionDetailController.Route(app)
 	userController.Route(app)
 	httpBinController.Route(app)
+	reservationController.Route(app)
 
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/MrWhok/FP-MBD-BACKEND/common"
 	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
 	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/MrWhok/FP-MBD-BACKEND/service"
@@ -53,7 +54,7 @@ func (controller UserController) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	customerID, err := controller.UserService.Login(c.Context(), request)
+	customerID, roles, err := controller.UserService.Login(c.Context(), request)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(model.GeneralResponse{
 			Code:    401,
@@ -61,10 +62,14 @@ func (controller UserController) Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// 🔑 Generate token
+	token := common.GenerateToken(customerID, roles, controller.Config)
+
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    200,
 		Message: "Login successful",
 		Data: map[string]interface{}{
+			"token":       token,
 			"customer_id": customerID,
 		},
 	})
