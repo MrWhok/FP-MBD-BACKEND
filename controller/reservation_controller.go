@@ -1,21 +1,26 @@
 package controller
 
 import (
+	"fmt"
+
+	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
+	"github.com/MrWhok/FP-MBD-BACKEND/middleware"
 	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/MrWhok/FP-MBD-BACKEND/service"
 	"github.com/gofiber/fiber/v2"
 )
 
 type ReservationController struct {
-	Service service.ReservationService
+	service.ReservationService
+	configuration.Config
 }
 
-func NewReservationController(service service.ReservationService) *ReservationController {
-	return &ReservationController{Service: service}
+func NewReservationController(reservationService service.ReservationService, config configuration.Config) *ReservationController {
+	return &ReservationController{ReservationService: reservationService, Config: config}
 }
 
 func (r *ReservationController) Route(app *fiber.App) {
-	app.Post("/v1/api/reservation", r.MakeReservation)
+	app.Post("/v1/api/reservation", middleware.AuthenticateJWT("customer", r.Config), r.MakeReservation)
 }
 
 func (r *ReservationController) MakeReservation(c *fiber.Ctx) error {
@@ -27,9 +32,16 @@ func (r *ReservationController) MakeReservation(c *fiber.Ctx) error {
 		})
 	}
 
-	customerID := c.Locals("user_id").(int) // make sure your JWT middleware sets this
-
-	err := r.Service.Reserve(c.Context(), customerID, req)
+	customerIDValue := c.Locals("customer_id")
+	customerID, ok := customerIDValue.(int)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    500,
+			Message: "General Error",
+			Data:    "Failed to parse customer_id from token. Got type: " + fmt.Sprintf("%T", customerIDValue),
+		})
+	}
+	err := r.ReservationService.Reserve(c.Context(), customerID, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
 			Code:    400,

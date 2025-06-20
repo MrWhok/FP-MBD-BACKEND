@@ -17,10 +17,8 @@ func NewReservationRepositoryImpl(db *gorm.DB) repository.ReservationRepository 
 }
 
 func (r *reservationRepositoryImpl) CreateReservation(ctx context.Context, customerID, slotID, tableID, guestCount int) error {
-	err := r.WithContext(ctx).Exec(
-		`CALL create_reservation(?, ?, ?, ?)`,
-		customerID, slotID, tableID, guestCount,
-	).Error
+	sql := `CALL create_reservation(?, ?, ?, ?)`
+	err := r.DB.WithContext(ctx).Exec(sql, customerID, slotID, tableID, guestCount).Error
 
 	if err != nil {
 		// Optionally parse PG error here

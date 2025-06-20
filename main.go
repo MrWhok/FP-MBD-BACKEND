@@ -60,7 +60,7 @@ func main() {
 	transactionDetailController := controller.NewTransactionDetailController(&transactionDetailService, config)
 	userController := controller.NewUserController(&userService, config)
 	httpBinController := controller.NewHttpBinController(&httpBinService)
-	reservationController := controller.NewReservationController(reservationService)
+	reservationController := controller.NewReservationController(reservationService, config)
 
 	//setup fiber
 	app := fiber.New(configuration.NewFiberConfiguration())
