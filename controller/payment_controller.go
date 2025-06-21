@@ -24,6 +24,7 @@ func NewPaymentController(paymentService service.PaymentService, config configur
 
 func (p *PaymentController) Route(app *fiber.App) {
 	app.Post("/v1/api/payment/upload/:reservation_id", middleware.AuthenticateJWT("customer", p.Config), p.UploadProof)
+	app.Post("/v1/api/payment/confirm/:reservation_id", middleware.AuthenticateJWT("admin", p.Config), p.ConfirmPayment)
 }
 
 func (p *PaymentController) UploadProof(c *fiber.Ctx) error {
@@ -57,5 +58,28 @@ func (p *PaymentController) UploadProof(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    200,
 		Message: "Payment proof uploaded successfully",
+	})
+}
+
+func (p *PaymentController) ConfirmPayment(c *fiber.Ctx) error {
+	reservationID, err := strconv.Atoi(c.Params("reservation_id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: "Invalid reservation ID",
+		})
+	}
+
+	err = p.PaymentService.ConfirmPayment(c.Context(), reservationID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    200,
+		Message: "Payment successfully confirmed",
 	})
 }

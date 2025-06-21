@@ -56,3 +56,7 @@ func (s *paymentServiceImpl) UploadPaymentProof(ctx context.Context, reservation
 	// Update path di DB
 	return s.repo.UpdatePaymentProof(ctx, reservationID, savePath)
 }
+
+func (s *paymentServiceImpl) ConfirmPayment(ctx context.Context, reservationID int) error {
+	return s.repo.ConfirmPayment(ctx, reservationID)
+}

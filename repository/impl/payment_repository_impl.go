@@ -24,3 +24,11 @@ func (r *paymentRepositoryImpl) UpdatePaymentProof(ctx context.Context, reservat
 	}
 	return nil
 }
+
+func (r *paymentRepositoryImpl) ConfirmPayment(ctx context.Context, reservationID int) error {
+	err := r.WithContext(ctx).Exec(`CALL confirm_payment(?)`, reservationID).Error
+	if err != nil {
+		return errors.New("failed to confirm payment: " + err.Error())
+	}
+	return nil
+}
