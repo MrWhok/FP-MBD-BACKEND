@@ -38,12 +38,9 @@ func main() {
 	//setup configuration
 	config := configuration.New()
 	database := configuration.NewDatabase(config)
-	redis := configuration.NewRedis(config)
+	// redis := configuration.NewRedis(config)
 
 	//repository
-	productRepository := repository.NewProductRepositoryImpl(database)
-	transactionRepository := repository.NewTransactionRepositoryImpl(database)
-	transactionDetailRepository := repository.NewTransactionDetailRepositoryImpl(database)
 	userRepository := repository.NewUserRepositoryImpl(database)
 	reservationRepo := impl.NewReservationRepositoryImpl(database)
 	unpaidPaymentRepo := impl.NewUnpaidPaymentRepositoryImpl(database)
@@ -52,18 +49,12 @@ func main() {
 	httpBinRestClient := restclient.NewHttpBinRestClient()
 
 	//service
-	productService := service.NewProductServiceImpl(&productRepository, redis)
-	transactionService := service.NewTransactionServiceImpl(&transactionRepository)
-	transactionDetailService := service.NewTransactionDetailServiceImpl(&transactionDetailRepository)
 	userService := service.NewUserServiceImpl(&userRepository)
 	httpBinService := service.NewHttpBinServiceImpl(&httpBinRestClient)
 	reservationService := service.NewReservationServiceImpl(reservationRepo)
 	unpaidPaymentService := service.NewUnpaidPaymentServiceImpl(unpaidPaymentRepo)
 
 	//controller
-	productController := controller.NewProductController(&productService, config)
-	transactionController := controller.NewTransactionController(&transactionService, config)
-	transactionDetailController := controller.NewTransactionDetailController(&transactionDetailService, config)
 	userController := controller.NewUserController(&userService, config)
 	httpBinController := controller.NewHttpBinController(&httpBinService)
 	reservationController := controller.NewReservationController(reservationService, config)
@@ -101,9 +92,6 @@ func main() {
 	app.Use(cors.New())
 
 	//routing
-	productController.Route(app)
-	transactionController.Route(app)
-	transactionDetailController.Route(app)
 	userController.Route(app)
 	httpBinController.Route(app)
 	reservationController.Route(app)
