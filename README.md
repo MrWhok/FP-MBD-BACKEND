@@ -3,9 +3,7 @@
 This project was created to learn golang with go fiber framework
 
 ## How To Run
-
-1. Run docker compose with command `docker compose up`
-2. Run Migration DB `migrate -database "mysql://root:root@tcp(localhost:3306)/gofiber_clean_architecture" -path db/migrations up`
+1. cp .env.test .env
 3. Run application with command `go run main.go`
 
 ## Feature
