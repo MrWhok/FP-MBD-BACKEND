@@ -44,6 +44,7 @@ func main() {
 	userRepository := repository.NewUserRepositoryImpl(database)
 	reservationRepo := impl.NewReservationRepositoryImpl(database)
 	unpaidPaymentRepo := impl.NewUnpaidPaymentRepositoryImpl(database)
+	paymentRepo := impl.NewPaymentRepositoryImpl(database)
 
 	//rest client
 	httpBinRestClient := restclient.NewHttpBinRestClient()
@@ -53,12 +54,14 @@ func main() {
 	httpBinService := service.NewHttpBinServiceImpl(&httpBinRestClient)
 	reservationService := service.NewReservationServiceImpl(reservationRepo)
 	unpaidPaymentService := service.NewUnpaidPaymentServiceImpl(unpaidPaymentRepo)
+	paymentService := service.NewPaymentServiceImpl(paymentRepo)
 
 	//controller
 	userController := controller.NewUserController(&userService, config)
 	httpBinController := controller.NewHttpBinController(&httpBinService)
 	reservationController := controller.NewReservationController(reservationService, config)
 	unpaidPaymentController := controller.NewUnpaidPaymentController(unpaidPaymentService, config)
+	paymentController := controller.NewPaymentController(paymentService, config)
 
 	notificationRepo := impl.NewNotificationRepositoryImpl(database)
 
@@ -96,6 +99,7 @@ func main() {
 	httpBinController.Route(app)
 	reservationController.Route(app)
 	unpaidPaymentController.Route(app)
+	paymentController.Route(app)
 
 	//swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
