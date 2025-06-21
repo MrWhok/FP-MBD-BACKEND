@@ -27,16 +27,16 @@ func (s *userServiceImpl) Register(ctx context.Context, req model.UserRegisterMo
 	return s.UserRepository.Register(ctx, req.Nama, req.Email, req.NoTelp, string(hashedPassword))
 }
 
-func (s *userServiceImpl) Login(ctx context.Context, req model.UserLoginModel) (int, []map[string]interface{}, error) {
-	hashedPassword, customerID, roles, err := s.UserRepository.Login(ctx, req.Email)
+func (s *userServiceImpl) Login(ctx context.Context, req model.UserLoginModel) (int, string, error) {
+	hashedPassword, customerID, role, err := s.UserRepository.Login(ctx, req.Email)
 	if err != nil {
-		return 0, nil, errors.New("email not found")
+		return 0, "", errors.New("email not found")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(req.Password))
 	if err != nil {
-		return 0, nil, errors.New("password incorrect")
+		return 0, "", errors.New("password incorrect")
 	}
 
-	return customerID, roles, nil
+	return customerID, role, nil
 }

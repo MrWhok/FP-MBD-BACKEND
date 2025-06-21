@@ -54,7 +54,7 @@ func (controller UserController) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	customerID, roles, err := controller.UserService.Login(c.Context(), request)
+	customerID, role, err := controller.UserService.Login(c.Context(), request)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(model.GeneralResponse{
 			Code:    401,
@@ -62,8 +62,7 @@ func (controller UserController) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// 🔑 Generate token
-	token := common.GenerateToken(customerID, roles, controller.Config)
+	token := common.GenerateToken(customerID, role, controller.Config)
 
 	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
 		Code:    200,
@@ -71,6 +70,7 @@ func (controller UserController) Login(c *fiber.Ctx) error {
 		Data: map[string]interface{}{
 			"token":       token,
 			"customer_id": customerID,
+			"role":        role,
 		},
 	})
 }

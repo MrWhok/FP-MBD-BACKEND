@@ -26,14 +26,14 @@ import (
 // 	return tokenSigned
 // }
 
-func GenerateToken(customerID int, roles []map[string]interface{}, config configuration.Config) string {
+func GenerateToken(customerID int, role string, config configuration.Config) string {
 	jwtSecret := config.Get("JWT_SECRET_KEY")
 	jwtExpired, err := strconv.Atoi(config.Get("JWT_EXPIRE_MINUTES_COUNT"))
 	exception.PanicLogging(err)
 
 	claims := jwt.MapClaims{
 		"customer_id": customerID,
-		"roles":       roles,
+		"role":        role,
 		"exp":         time.Now().Add(time.Minute * time.Duration(jwtExpired)).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

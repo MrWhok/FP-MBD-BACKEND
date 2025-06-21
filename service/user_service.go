@@ -8,5 +8,5 @@ import (
 
 type UserService interface {
 	Register(ctx context.Context, request model.UserRegisterModel) error
-	Login(ctx context.Context, req model.UserLoginModel) (int, []map[string]interface{}, error)
+	Login(ctx context.Context, req model.UserLoginModel) (int, string, error)
 }

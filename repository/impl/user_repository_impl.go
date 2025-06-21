@@ -19,23 +19,18 @@ func (r *userRepositoryImpl) Register(ctx context.Context, nama, email, noTelp, 
 	return r.DB.WithContext(ctx).Exec(`CALL register_customer(?, ?, ?, ?)`, nama, email, noTelp, password).Error
 }
 
-func (r *userRepositoryImpl) Login(ctx context.Context, email string) (string, int, []map[string]interface{}, error) {
+func (r *userRepositoryImpl) Login(ctx context.Context, email string) (string, int, string, error) {
 	var hashedPassword string
 	var customerID int
-	var roles []map[string]interface{}
+	var role string
 
-	row := r.DB.WithContext(ctx).Raw(`SELECT customer_id, password FROM customer WHERE email = ?`, email).Row()
-	err := row.Scan(&customerID, &hashedPassword)
+	row := r.DB.WithContext(ctx).Raw(`SELECT customer_id, password, role FROM customer WHERE email = ?`, email).Row()
+	err := row.Scan(&customerID, &hashedPassword, &role)
 	if err != nil {
-		return "", 0, nil, err
+		return "", 0, "", err
 	}
 
-	// Example roles (mocked)
-	roles = append(roles, map[string]interface{}{
-		"role": "customer",
-	})
-
-	return hashedPassword, customerID, roles, nil
+	return hashedPassword, customerID, role, nil
 }
 
 func (r *userRepositoryImpl) FindRolesByCustomerID(ctx context.Context, customerID int) ([]map[string]interface{}, error) {
