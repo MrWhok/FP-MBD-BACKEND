@@ -8,4 +8,5 @@ import (
 
 type ReservationService interface {
 	Reserve(ctx context.Context, customerID int, req model.ReservationRequest) error
+	Reschedule(ctx context.Context, customerID int, req model.RescheduleRequest) error
 }
