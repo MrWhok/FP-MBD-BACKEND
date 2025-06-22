@@ -96,3 +96,37 @@ func (r *ReservationController) RescheduleReservation(c *fiber.Ctx) error {
 		Data:    fmt.Sprintf("Reservation ID %d rescheduled successfully.", req.ReservationID),
 	})
 }
+
+func (r *ReservationController) CancelReservation(c *fiber.Ctx) error {
+	reservationID, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: "Invalid reservation ID",
+			Data:    err.Error(),
+		})
+	}
+
+	customerIDValue := c.Locals("customer_id")
+	customerID, ok := customerIDValue.(int)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
+			Code:    500,
+			Message: "General Error",
+			Data:    "Failed to parse customer_id from token.",
+		})
+	}
+
+	err = r.ReservationService.CancelReservation(c.Context(), reservationID, customerID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+			Code:    400,
+			Message: err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
+		Code:    200,
+		Message: "Reservasi berhasil dibatalkan",
+	})
+}

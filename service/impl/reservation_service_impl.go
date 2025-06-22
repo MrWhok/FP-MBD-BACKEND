@@ -48,3 +48,14 @@ func (s *reservationServiceImpl) Reschedule(ctx context.Context, customerID int,
 
 	return nil
 }
+
+func (s *reservationServiceImpl) CancelReservation(ctx context.Context, reservationID int, customerID int) error {
+	reservation, err := s.repo.GetReservationByID(ctx, reservationID)
+	if err != nil {
+		return err
+	}
+	if reservation.CustomerID != customerID {
+		return fmt.Errorf("unauthorized")
+	}
+	return s.repo.CancelReservation(ctx, reservationID)
+}

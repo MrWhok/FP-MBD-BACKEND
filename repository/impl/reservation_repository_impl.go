@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/MrWhok/FP-MBD-BACKEND/model"
 	"github.com/MrWhok/FP-MBD-BACKEND/repository"
 	"gorm.io/gorm"
 )
@@ -68,4 +69,9 @@ func (r *reservationRepositoryImpl) FindAvailableTableForSlot(ctx context.Contex
 		return 0, fmt.Errorf("failed to find available table: %w", err)
 	}
 	return tableID, nil
+}
+
+func (r *reservationRepositoryImpl) CancelReservation(ctx context.Context, reservationID int) error {
+	err := r.DB.WithContext(ctx).Exec("SELECT cancel_reservation(?)", reservationID).Error
+	return err
 }
