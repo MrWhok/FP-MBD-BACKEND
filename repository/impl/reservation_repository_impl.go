@@ -23,20 +23,18 @@ func (r *reservationRepositoryImpl) CreateReservation(ctx context.Context, custo
 	err := r.DB.WithContext(ctx).Exec(sql, customerID, slotID, tableID, guestCount).Error
 
 	if err != nil {
-		// Optionally parse PG error here
 		return errors.New("failed to create reservation: " + err.Error())
 	}
 	return nil
 }
 
-// GetReservationByID fetches a reservation by its ID using GORM's Raw method.
 func (r *reservationRepositoryImpl) GetReservationByID(ctx context.Context, reservationID int) (*model.Reservation, error) {
 	var res model.Reservation
 	query := `SELECT reservation_id, customer_id, slot_id, table_id, guest_count, status, created_at
-			  FROM reservation WHERE reservation_id = ?` // GORM uses '?' placeholders
+			  FROM reservation WHERE reservation_id = ?`
 	err := r.db.WithContext(ctx).Raw(query, reservationID).Scan(&res).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) { // Check for GORM's specific "no rows" error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("reservation with ID %d not found", reservationID)
 		}
 		return nil, fmt.Errorf("failed to get reservation: %w", err)
@@ -44,27 +42,23 @@ func (r *reservationRepositoryImpl) GetReservationByID(ctx context.Context, rese
 	return &res, nil
 }
 
-// RescheduleReservation calls the PostgreSQL stored procedure 'reschedule_reservation' using GORM's Exec.
 func (r *reservationRepositoryImpl) RescheduleReservation(ctx context.Context, reservationID, newSlotID, newGuestCount int, notificationChannel string) error {
-	// Using CALL for stored procedure in PostgreSQL 11+
-	query := "CALL reschedule_reservation(?, ?, ?, ?)" // GORM uses '?' placeholders
+	query := "CALL reschedule_reservation(?, ?, ?, ?)"
 	err := r.db.WithContext(ctx).Exec(query, reservationID, newSlotID, newGuestCount, notificationChannel).Error
 	if err != nil {
-		// Log error more detailed for debugging
 		fmt.Printf("Error calling reschedule_reservation procedure for reservation ID %d: %v\n", reservationID, err)
 		return fmt.Errorf("failed to reschedule reservation: %w", err)
 	}
 	return nil
 }
 
-// FindAvailableTableForSlot calls the PostgreSQL function 'find_available_table_for_slot' using GORM's Raw.
 func (r *reservationRepositoryImpl) FindAvailableTableForSlot(ctx context.Context, slotID int, guestCount int) (int, error) {
 	var tableID int
-	query := "SELECT find_available_table_for_slot(?, ?)" // GORM uses '?' placeholders
+	query := "SELECT find_available_table_for_slot(?, ?)"
 	err := r.db.WithContext(ctx).Raw(query, slotID, guestCount).Scan(&tableID).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) || tableID == 0 { // Check if no row or if function returns 0/NULL
-			return 0, nil // Return 0 if no table is found (function returns NULL/0)
+		if errors.Is(err, gorm.ErrRecordNotFound) || tableID == 0 {
+			return 0, nil
 		}
 		return 0, fmt.Errorf("failed to find available table: %w", err)
 	}
@@ -74,4 +68,14 @@ func (r *reservationRepositoryImpl) FindAvailableTableForSlot(ctx context.Contex
 func (r *reservationRepositoryImpl) CancelReservation(ctx context.Context, reservationID int) error {
 	err := r.DB.WithContext(ctx).Exec("SELECT cancel_reservation(?)", reservationID).Error
 	return err
+}
+
+func (r *reservationRepositoryImpl) EditReservation(ctx context.Context, reservationID int, newGuestCount int) error {
+	query := "CALL edit_reservation(?, ?)"
+	err := r.DB.WithContext(ctx).Exec(query, reservationID, newGuestCount).Error
+	if err != nil {
+		fmt.Printf("Error calling edit_reservation procedure for reservation ID %d: %v\n", reservationID, err)
+		return fmt.Errorf("failed to edit reservation: %w", err)
+	}
+	return nil
 }
