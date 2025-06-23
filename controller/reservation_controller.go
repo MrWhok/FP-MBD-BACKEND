@@ -1,9 +1,6 @@
 package controller
 
 import (
-	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/MrWhok/FP-MBD-BACKEND/configuration"
@@ -25,9 +22,6 @@ func NewReservationController(reservationService service.ReservationService, con
 func (r *ReservationController) Route(app *fiber.App) {
 	app.Post("/v1/api/reservation", middleware.AuthenticateJWT("customer", r.Config), r.MakeReservation)
 	app.Put("/v1/api/reservation/reschedule", middleware.AuthenticateJWT("customer", r.Config), r.RescheduleReservation)
-	app.Put("/v1/api/reservation/re", middleware.AuthenticateJWT("customer", r.Config), r.RescheduleReservation)
-	app.Put("/v1/api/reservation/edit", middleware.AuthenticateJWT("customer", r.Config), r.EditReservation)
-	app.Delete("/v1/api/reservation/:id", middleware.AuthenticateJWT("customer", r.Config), r.CancelReservation)
 }
 
 func (r *ReservationController) MakeReservation(c *fiber.Ctx) error {
@@ -45,10 +39,9 @@ func (r *ReservationController) MakeReservation(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.GeneralResponse{
 			Code:    500,
 			Message: "General Error",
-			Data:    "Failed to parse customer_id from token.",
+			Data:    "Failed to parse customer_id from token. Got type: " + fmt.Sprintf("%T", customerIDValue),
 		})
 	}
-
 	err := r.ReservationService.Reserve(c.Context(), customerID, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
@@ -63,31 +56,6 @@ func (r *ReservationController) MakeReservation(c *fiber.Ctx) error {
 	})
 }
 
-func (r *ReservationController) EditReservation(c *fiber.Ctx) error {
-	var req model.EditReservationRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
-			Code:    400,
-			Message: "Invalid request format",
-			Data:    err.Error(),
-		})
-	}
-
-	err := r.ReservationService.EditReservation(c.Context(), req.ReservationID, req.NewGuests)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
-			Code:    400,
-			Message: err.Error(),
-		})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(model.GeneralResponse{
-		Code:    200,
-		Message: "Reservation successfully edited",
-		Data:    fmt.Sprintf("Reservation ID %d edited successfully.", req.ReservationID),
-	})
-}
-
 // RescheduleReservation handles the request to reschedule an existing reservation.
 func (r *ReservationController) RescheduleReservation(c *fiber.Ctx) error {
 	var req model.RescheduleRequest
@@ -99,6 +67,9 @@ func (r *ReservationController) RescheduleReservation(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validasi input request (misalnya, menggunakan "validate" tag di model jika ada validator)
+	// if err := validate.Struct(req); err != nil { ... }
+
 	customerIDValue := c.Locals("customer_id")
 	customerID, ok := customerIDValue.(int)
 	if !ok {
@@ -109,9 +80,11 @@ func (r *ReservationController) RescheduleReservation(c *fiber.Ctx) error {
 		})
 	}
 
+	// Panggil service layer untuk menjalankan logika reschedule
 	err := r.ReservationService.Reschedule(c.Context(), customerID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{
+		// Tangani error dari service layer. Error message dari service biasanya sudah spesifik.
+		return c.Status(fiber.StatusBadRequest).JSON(model.GeneralResponse{ // Gunakan Bad Request jika ini adalah error validasi/bisnis
 			Code:    400,
 			Message: err.Error(),
 		})
